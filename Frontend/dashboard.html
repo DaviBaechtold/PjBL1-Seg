@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthAuth — Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1A3A5C;
+      --accent:  #2E86C1;
+      --light:   #D6EAF8;
+      --danger:  #C0392B;
+      --success: #1E8449;
+      --bg:      #F0F4F8;
+      --card:    #FFFFFF;
+      --text:    #222222;
+      --muted:   #6B7280;
+      --border:  #CBD5E1;
+      --radius:  10px;
+      --shadow:  0 4px 24px rgba(0,0,0,.10);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .nav-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: .5px; }
+    .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+    .nav-user  { font-size: .9rem; opacity: .85; }
+    .btn-logout {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      color: #fff;
+      padding: .4rem .9rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,.28); }
+
+    /* ── Layout ── */
+    main { max-width: 900px; margin: 2.5rem auto; padding: 0 1.5rem; }
+
+    .welcome {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.8rem 2rem;
+      margin-bottom: 1.5rem;
+      border-left: 5px solid var(--accent);
+    }
+    .welcome h2 { font-size: 1.3rem; color: var(--primary); margin-bottom: .3rem; }
+    .welcome p  { color: var(--muted); font-size: .92rem; }
+
+    /* ── Cards grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .info-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.4rem 1.6rem;
+    }
+    .info-card .label { font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .4rem; }
+    .info-card .value { font-size: 1rem; color: var(--text); word-break: break-all; }
+    .info-card .badge {
+      display: inline-block;
+      background: var(--light);
+      color: var(--primary);
+      font-size: .78rem;
+      font-weight: 700;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+      margin-top: .3rem;
+    }
+
+    /* ── Token viewer ── */
+    .token-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.6rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .token-card h3 { color: var(--primary); font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: .4rem; }
+    .token-parts { display: flex; flex-direction: column; gap: .6rem; }
+    .token-part  { border-radius: 6px; padding: .7rem 1rem; font-family: monospace; font-size: .78rem; word-break: break-all; }
+    .part-header  { background: #fde8e8; color: #922b21; }
+    .part-payload { background: #e8f5e9; color: #1a5c2a; }
+    .part-sig     { background: #fff3cd; color: #856404; }
+    .part-label   { font-size: .7rem; font-weight: 700; text-transform: uppercase; margin-bottom: .25rem; opacity: .7; }
+
+    /* ── Payload decoded ── */
+    .payload-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .8rem 1rem;
+      font-family: monospace;
+      font-size: .82rem;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+
+    /* ── Security note ── */
+    .security-banner {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: var(--radius);
+      padding: 1rem 1.4rem;
+      font-size: .85rem;
+      color: var(--success);
+      display: flex;
+      gap: .6rem;
+      align-items: flex-start;
+    }
+    .security-banner strong { display: block; margin-bottom: .2rem; }
+
+    /* ── Overlay de carregamento ── */
+    #loading {
+      position: fixed; inset: 0;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--muted);
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading">🔐 Verificando autenticação...</div>
+
+<nav>
+  <span class="nav-brand">🏥 HealthAuth</span>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-email">—</span>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</nav>
+
+<main id="main-content" style="display:none">
+
+  <div class="welcome">
+    <h2 id="welcome-msg">Bem-vindo! 👋</h2>
+    <p>Você está autenticado. Esta página só é acessível com um JWT válido armazenado em memória.</p>
+  </div>
+
+  <div class="grid">
+    <div class="info-card">
+      <div class="label">Usuário (sub)</div>
+      <div class="value" id="info-email">—</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Perfil (role)</div>
+      <div class="value"><span class="badge" id="info-role">—</span></div>
+    </div>
+    <div class="info-card">
+      <div class="label">Token emitido em</div>
+      <div class="value" id="info-iat">—</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Token expira em</div>
+      <div class="value" id="info-exp">—</div>
+    </div>
+  </div>
+
+  <div class="token-card">
+    <h3>🔍 Anatomia do seu JWT</h3>
+    <div class="token-parts">
+      <div class="token-part part-header">
+        <div class="part-label">Header (vermelho)</div>
+        <span id="raw-header">—</span>
+      </div>
+      <div class="token-part part-payload">
+        <div class="part-label">Payload (verde) — visível sem chave secreta!</div>
+        <span id="raw-payload">—</span>
+      </div>
+      <div class="token-part part-sig">
+        <div class="part-label">Signature (amarelo) — só verificável com a chave secreta</div>
+        <span id="raw-sig">—</span>
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.2rem">📦 Payload decodificado</h3>
+    <pre class="payload-box" id="payload-decoded">—</pre>
+  </div>
+
+  <div class="security-banner">
+    <span>🔒</span>
+    <div>
+      <strong>Armazenamento seguro em memória</strong>
+      O token JWT está salvo apenas em uma variável JavaScript (não em <code>localStorage</code>
+      nem <code>sessionStorage</code>). Se você fechar esta aba, o token é descartado e
+      será necessário fazer login novamente — exatamente como deve funcionar.
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// AuthStore compartilhado — em produção real, estaria num módulo
+// JS separado importado via <script type="module">
+// ═══════════════════════════════════════════════════════════════
+const AuthStore = (() => {
+  let _token = null;
+  return {
+    set(t)   { _token = t; },
+    get()    { return _token; },
+    clear()  { _token = null; },
+    isAuth() { return !!_token; }
+  };
+})();
+
+// ── Simula recuperação do token da página de login ─────────────
+// Em produção real, o token viria de uma chamada à API de login
+// feita nesta mesma sessão (mesmo módulo JS). Aqui, para fins
+// didáticos, usamos sessionStorage APENAS como ponte entre páginas,
+// e limpamos imediatamente após ler — o token de trabalho
+// permanece apenas na variável em memória.
+
+(function bootstrap() {
+  const bridgeToken = sessionStorage.getItem('_auth_bridge');
+  if (bridgeToken) {
+    AuthStore.set(bridgeToken);
+    sessionStorage.removeItem('_auth_bridge'); // limpa o storage imediatamente
+  }
+})();
+
+// ── Proteção de rota ───────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (!AuthStore.isAuth()) {
+    window.location.href = 'index.html';
+    return;
+  }
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  renderToken(AuthStore.get());
+});
+
+// ── Decode JWT (sem verificação — apenas visualização didática) ──
+function base64UrlDecode(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  try { return JSON.parse(atob(str)); } catch { return null; }
+}
+
+function renderToken(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) return;
+
+  const [h, p, s] = parts;
+  const header  = base64UrlDecode(h);
+  const payload = base64UrlDecode(p);
+
+  document.getElementById('raw-header').textContent  = h;
+  document.getElementById('raw-payload').textContent = p;
+  document.getElementById('raw-sig').textContent     = s;
+
+  if (payload) {
+    document.getElementById('info-email').textContent = payload.sub || '—';
+    document.getElementById('info-role').textContent  = payload.role || payload.roles || '—';
+    document.getElementById('nav-email').textContent  = payload.sub || '—';
+    document.getElementById('welcome-msg').textContent =
+      `Bem-vindo, ${payload.name || payload.sub}! 👋`;
+
+    const fmt = ts => ts ? new Date(ts * 1000).toLocaleString('pt-BR') : '—';
+    document.getElementById('info-iat').textContent = fmt(payload.iat);
+    document.getElementById('info-exp').textContent = fmt(payload.exp);
+
+    document.getElementById('payload-decoded').textContent =
+      JSON.stringify(payload, null, 2);
+  }
+}
+
+// ── Logout ─────────────────────────────────────────────────────
+async function logout() {
+  const token = AuthStore.get();
+  // Notifica a API para invalidar o token no servidor
+  try {
+    await fetch('http://localhost:8080/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  } catch { /* ignora erros de rede no logout */ }
+
+  AuthStore.clear();
+  window.location.href = 'index.html';
+}
+
+// ── Requisição autenticada (exemplo de uso) ───────────────────
+async function fetchAutenticado(url, options = {}) {
+  const token = AuthStore.get();
+  if (!token) { window.location.href = 'index.html'; return; }
+
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (res.status === 401) {
+    console.log("TESTE");
+    AuthStore.clear();
+    window.location.href = 'index.html';
+    return;
+  }
+  return res;
+}
+</script>
+</body>
+</html>

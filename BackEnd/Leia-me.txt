@@ -1,0 +1,1 @@
+Aqui está o backend Java Springboot, já há um esqueleto pronto, você deve apenas fazer as funções referentes à manipulação JWT e fazer com que tudo funcione junto.

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthAuth — Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:   #1A3A5C;
+      --accent:    #2E86C1;
+      --light:     #D6EAF8;
+      --danger:    #C0392B;
+      --success:   #1E8449;
+      --bg:        #F0F4F8;
+      --card:      #FFFFFF;
+      --text:      #222222;
+      --muted:     #6B7280;
+      --border:    #CBD5E1;
+      --radius:    10px;
+      --shadow:    0 4px 24px rgba(0,0,0,.10);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 2rem 2rem 1.5rem;
+      text-align: center;
+    }
+    .card-header .logo { font-size: 2.2rem; margin-bottom: .4rem; }
+    .card-header h1   { font-size: 1.4rem; font-weight: 700; letter-spacing: .5px; }
+    .card-header p    { font-size: .85rem; opacity: .75; margin-top: .25rem; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: .85rem;
+      background: none;
+      border: none;
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .2s, border-bottom .2s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Forms ── */
+    .tab-panel { display: none; padding: 1.8rem 2rem 2rem; }
+    .tab-panel.active { display: block; }
+
+    .form-group { margin-bottom: 1.1rem; }
+    label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: .35rem;
+      letter-spacing: .3px;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: .65rem .9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: .95rem;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(46,134,193,.15);
+    }
+    input.error  { border-color: var(--danger); }
+    input.ok     { border-color: var(--success); }
+
+    .field-error {
+      font-size: .78rem;
+      color: var(--danger);
+      margin-top: .25rem;
+      min-height: 1rem;
+    }
+
+    /* ── Password strength ── */
+    .strength-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      margin-top: .4rem;
+      overflow: hidden;
+    }
+    .strength-fill {
+      height: 100%;
+      width: 0;
+      border-radius: 2px;
+      transition: width .3s, background .3s;
+    }
+    .strength-label { font-size: .73rem; color: var(--muted); margin-top: .2rem; }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%;
+      padding: .75rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: .4rem;
+      letter-spacing: .3px;
+    }
+    .btn:hover   { background: var(--primary); }
+    .btn:active  { transform: scale(.98); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── Alert ── */
+    .alert {
+      padding: .7rem 1rem;
+      border-radius: 7px;
+      font-size: .88rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-danger  { background:#fde8e8; color: var(--danger); border: 1px solid #f5c6c6; }
+    .alert-success { background:#e8f5e9; color: var(--success); border: 1px solid #c8e6c9; }
+
+    /* ── Footer note ── */
+    .security-note {
+      font-size: .73rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .3rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="logo">🏥</div>
+    <h1>HealthAuth</h1>
+    <p>Plataforma de Autenticação Segura</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('login')">Entrar</button>
+    <button class="tab-btn"        onclick="switchTab('register')">Cadastrar</button>
+  </div>
+
+  <!-- ── LOGIN ── -->
+  <div id="panel-login" class="tab-panel active">
+    <div id="login-alert" class="alert"></div>
+
+    <div class="form-group">
+      <label for="login-email">E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" />
+      <div class="field-error" id="login-email-err"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="login-password">Senha</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+      <div class="field-error" id="login-pass-err"></div>
+    </div>
+
+    <button class="btn" id="login-btn" onclick="handleLogin()">Entrar</button>
+
+    <p class="security-note">Token armazenado apenas em memória</p>
+  </div>
+
+  <!-- ── REGISTER ── -->
+  <div id="panel-register" class="tab-panel">
+    <div id="reg-alert" class="alert"></div>
+
+    <div class="form-group">
+      <label for="reg-name">Nome completo</label>
+      <input type="text" id="reg-name" placeholder="Maria da Silva" autocomplete="name" />
+      <div class="field-error" id="reg-name-err"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="reg-email">E-mail</label>
+      <input type="email" id="reg-email" placeholder="seu@email.com" autocomplete="email" />
+      <div class="field-error" id="reg-email-err"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="reg-password">Senha</label>
+      <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres"
+             oninput="checkStrength(this.value)" autocomplete="new-password" />
+      <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+      <div class="strength-label" id="strength-label">Digite uma senha</div>
+      <div class="field-error" id="reg-pass-err"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="reg-confirm">Confirmar senha</label>
+      <input type="password" id="reg-confirm" placeholder="Repita a senha" autocomplete="new-password" />
+      <div class="field-error" id="reg-confirm-err"></div>
+    </div>
+
+    <button class="btn" id="reg-btn" onclick="handleRegister()">Criar conta</button>
+
+    <p class="security-note">Senha enviada com hash — nunca em texto claro</p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// MÓDULO DE AUTENTICAÇÃO — Token armazenado SOMENTE em memória
+// (NUNCA em localStorage / sessionStorage / cookie sem HttpOnly)
+// ═══════════════════════════════════════════════════════════════
+const AuthStore = (() => {
+  let _token = null;
+  return {
+    set(token)       { _token = token; },
+    get()            { return _token; },
+    clear()          { _token = null; },
+    isAuth()         { return !!_token; }
+  };
+})();
+
+const API = 'SUA API';
+
+// ── Utilitários de UI ──────────────────────────────────────────
+function showAlert(id, msg, type = 'danger') {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `alert alert-${type} show`;
+}
+function hideAlert(id) {
+  const el = document.getElementById(id);
+  el.className = 'alert';
+}
+function setFieldError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg;
+}
+function clearErrors(...ids) {
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = ''; });
+}
+function markInput(id, valid) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('error', !valid);
+  el.classList.toggle('ok', valid);
+}
+
+// ── Troca de aba ──────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  document.querySelectorAll('.tab-btn')[tab === 'login' ? 0 : 1].classList.add('active');
+}
+
+// ── Força da senha ─────────────────────────────────────────────
+function checkStrength(password) {
+  let score = 0;
+  if (password.length >= 8)            score++;
+  if (/[A-Z]/.test(password))          score++;
+  if (/[0-9]/.test(password))          score++;
+  if (/[^A-Za-z0-9]/.test(password))  score++;
+
+  const fill  = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  const configs = [
+    { w: '0%',   bg: '#ccc',            text: 'Digite uma senha' },
+    { w: '25%',  bg: '#e74c3c',         text: 'Fraca' },
+    { w: '50%',  bg: '#e67e22',         text: 'Razoável' },
+    { w: '75%',  bg: '#f1c40f',         text: 'Boa' },
+    { w: '100%', bg: 'var(--success)',  text: 'Forte ✓' },
+  ];
+  const c = configs[score];
+  fill.style.width      = c.w;
+  fill.style.background = c.bg;
+  label.textContent     = c.text;
+  label.style.color     = c.bg;
+}
+
+// ── Validações ─────────────────────────────────────────────────
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+function validatePassword(pw) {
+  return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw);
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────
+async function handleLogin() {
+  hideAlert('login-alert');
+  clearErrors('login-email-err', 'login-pass-err');
+
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+
+  let valid = true;
+  if (!validateEmail(email)) {
+    setFieldError('login-email-err', 'Informe um e-mail válido.');
+    markInput('login-email', false); valid = false;
+  } else markInput('login-email', true);
+
+  if (!pass) {
+    setFieldError('login-pass-err', 'A senha é obrigatória.');
+    markInput('login-password', false); valid = false;
+  } else markInput('login-password', true);
+
+  if (!valid) return;
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Autenticando...';
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Token salvo apenas em memória — nunca em localStorage!
+      AuthStore.set(data.token);
+      window.location.href = 'dashboard.html';
+    } else {
+      // Mensagem genérica — não revela se é e-mail ou senha errada
+      showAlert('login-alert', data.message || 'Credenciais inválidas. Tente novamente.');
+    }
+  } catch {
+    showAlert('login-alert', 'Não foi possível conectar ao servidor. Verifique se a API está rodando.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+}
+
+// ── CADASTRO ───────────────────────────────────────────────────
+async function handleRegister() {
+  hideAlert('reg-alert');
+  clearErrors('reg-name-err', 'reg-email-err', 'reg-pass-err', 'reg-confirm-err');
+
+  const name    = document.getElementById('reg-name').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const pass    = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+
+  let valid = true;
+
+  if (name.length < 3) {
+    setFieldError('reg-name-err', 'Nome deve ter ao menos 3 caracteres.');
+    markInput('reg-name', false); valid = false;
+  } else markInput('reg-name', true);
+
+  if (!validateEmail(email)) {
+    setFieldError('reg-email-err', 'Informe um e-mail válido.');
+    markInput('reg-email', false); valid = false;
+  } else markInput('reg-email', true);
+
+  if (!validatePassword(pass)) {
+    setFieldError('reg-pass-err', 'Mínimo 8 caracteres, com maiúscula e número.');
+    markInput('reg-password', false); valid = false;
+  } else markInput('reg-password', true);
+
+  if (pass !== confirm) {
+    setFieldError('reg-confirm-err', 'As senhas não coincidem.');
+    markInput('reg-confirm', false); valid = false;
+  } else if (confirm) markInput('reg-confirm', true);
+
+  if (!valid) return;
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true;
+  btn.textContent = 'Criando conta...';
+
+  try {
+    const res = await fetch(`${API}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password: pass })
+    });
+
+    const data = await res.json();
+
+    if (res.ok || res.status === 201) {
+      showAlert('reg-alert', 'Conta criada! Faça login para continuar.', 'success');
+      setTimeout(() => switchTab('login'), 2000);
+    } else {
+      showAlert('reg-alert', data.message || 'Erro ao criar conta. Tente novamente.');
+    }
+  } catch {
+    showAlert('reg-alert', 'Não foi possível conectar ao servidor. Verifique se a API está rodando.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Criar conta';
+  }
+}
+
+// Envio com Enter
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.tab-panel.active').id;
+  if (active === 'panel-login')    handleLogin();
+  if (active === 'panel-register') handleRegister();
+});
+</script>
+</body>
+</html>

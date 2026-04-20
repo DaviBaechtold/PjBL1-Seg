@@ -261,7 +261,7 @@ const AuthStore = (() => {
   };
 })();
 
-const API = 'SUA API';
+const API = 'http://localhost:8080/api';
 
 // ── Utilitários de UI ──────────────────────────────────────────
 function showAlert(id, msg, type = 'danger') {
@@ -362,8 +362,10 @@ async function handleLogin() {
     const data = await res.json();
 
     if (res.ok) {
-      // Token salvo apenas em memória — nunca em localStorage!
+      // Token salvo em memória; ponte via sessionStorage apenas para cruzar páginas
+      // (lida e apagada imediatamente pelo dashboard — nunca persiste)
       AuthStore.set(data.token);
+      sessionStorage.setItem('_auth_bridge', data.token);
       window.location.href = 'dashboard.html';
     } else {
       // Mensagem genérica — não revela se é e-mail ou senha errada
